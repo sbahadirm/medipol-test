@@ -4,22 +4,31 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Bahadır Memiş
  * @since 1.0.0
  */
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductValidator productValidator;
     private final ProductEntityService productEntityService;
     private final ProductCalculatorService productCalculatorService;
 
+    public ProductService(ProductValidator productValidator, ProductEntityService productEntityService, ProductCalculatorService productCalculatorService) {
+        this.productValidator = productValidator;
+        this.productEntityService = productEntityService;
+        this.productCalculatorService = productCalculatorService;
+    }
+
     public Product saveProduct(Product product) {
 
-        return productEntityService.save(product);
+        product = productEntityService.save(product);
+
+        return product;
     }
 
     public Long addStock(Long productId, Long amount) {
@@ -31,9 +40,12 @@ public class ProductService {
     }
 
     public Long updateAndGetNewStock(Long productId, Long amount, EnumStockMovementType stockMovementType) {
+
         productValidator.validateAmount(amount);
 
-        Product product = productEntityService.findById(productId).orElseThrow();
+        Optional<Product> optionalProduct = productEntityService.findById(productId);
+
+        Product product = optionalProduct.orElseThrow();
 
         Long newStock = productCalculatorService.calculateStock(product, amount, stockMovementType);
 
